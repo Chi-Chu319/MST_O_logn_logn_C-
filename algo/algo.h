@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <random>
+#include <boost/mpi.hpp>
+#include <boost/mpi/collectives.hpp>
 
 class GraphLocal {
 public:
@@ -51,8 +53,25 @@ private:
 struct ClusterEdge {
     int from_v;
     int to_v;
-    float weight;
-    ClusterEdge(int from_v, int to_v, float weight) : from_v(from_v), to_v(to_v), weight(weight) {};
+    double weight;
+    ClusterEdge(int from_v, int to_v, double weight) : from_v(from_v), to_v(to_v), weight(weight) {};
+};
+
+struct LogDist {
+    int k;
+    double t_total;
+    double t_mpi;
+    double t_comm0;
+    double t_comm1;
+    double t_comm2;
+    double t_comm3;
+    double t_comm4;
+};
+
+struct AlgoMPIResult {
+    std::vector<LogDist> logs;
+    std::vector<ClusterEdge> mst_edges;
+    int k;
 };
 
 class QuickUnion {
@@ -60,16 +79,28 @@ public:
     QuickUnion(int* id, int n);
     ~QuickUnion();
     int* get_id();
+    void set_id(int* newId);
     int get_cluster_leader(int i);
     void set_finished(int i);
+    void reset_finished();
     int root(int i);
-    int flatten(int i);
+    int flatten();
     bool is_finished(int i);
+    bool safe_union(int p, int q);
 private:
     int* id;
     int* sz;
     bool* finished;
     int n;
 };
+
+namespace GraphUtil {
+    std::vector<std::vector<ClusterEdge>> get_min_weight_to_cluster_edges(GraphLocal& graph_local, QuickUnion& cluster_finder);
+    std::vector<ClusterEdge> get_min_weight_from_cluster_edges(std::vector<ClusterEdge>& cluster_edges, QuickUnion& cluster_finder);
+}
+
+namespace MSTSolver {
+    AlgoMPIResult algo_mpi(boost::mpi::communicator world, GraphLocal& graph_local, int rank, int size);
+}
 
 #endif // ALGO_H

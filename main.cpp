@@ -18,4 +18,21 @@ int main(int argc, char *argv[]) {
     boost::mpi::all_to_all<std::vector<double>>(world, sendbuf, recvbuf);
 
     graph_local.fill(recvbuf);
+
+    AlgoMPIResult result = MSTSolver::algo_mpi(world, graph_local, rank, size);
+
+    if (rank == 0) {
+
+        double t_dist_all = 0;
+        double t_dist_mpi = 0;
+        for (int i = 0; i < result.logs.size(); i++) {
+            t_dist_all += result.logs[i].t_total;
+            t_dist_mpi += result.logs[i].t_mpi;
+        }
+
+        std::cout << "Total time: " << t_dist_all << std::endl;
+        std::cout << "MPI time: " << t_dist_mpi << std::endl;
+    }
+
+    return 0;
 }

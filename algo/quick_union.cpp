@@ -30,12 +30,22 @@ public:
         return id;
     }
 
+    void set_id(int* newId) {
+        id = newId;
+    }
+
     int get_cluster_leader(int i) {
         return root(i);
     }
 
     void set_finished(int i) {
         finished[root(i)] = true;
+    }
+
+    void reset_finished() {
+        for (int i = 0; i < n; i++) {
+            finished[i] = false;
+        }
     }
 
     int root(int i) {
@@ -45,7 +55,7 @@ public:
         return i;
     }
 
-    int flatten(int i) {
+    int flatten() {
         int* newId = new int[n];
         for (int i = 0; i < n; i++) {
             newId[i] = root(i);
