@@ -4,6 +4,8 @@
 #include "algo.h"
 #include <vector>
 #include <set>
+#include <boost/serialization/vector.hpp>
+#include <map>
 
 namespace MSTSolver {
     AlgoMPIResult algo_mpi(boost::mpi::communicator world, GraphLocal& graph_local, int rank, int size) {
@@ -16,7 +18,7 @@ namespace MSTSolver {
         int k = 0;
         std::vector<LogDist> logs;
 
-        std::vector<std::vector<int>> clusters_local(num_vertex);
+        std::vector<std::vector<int>> clusters_local(num_vertex_local);
         int* cluster_finder_id = new int[num_vertex];
 
         for (int i = 0; i < num_vertex; ++i) {
@@ -96,13 +98,15 @@ namespace MSTSolver {
                         continue;
                     }
 
-                    std::sort(cluster_edges.begin(), cluster_edges.end(), [](ClusterEdge a, ClusterEdge b) {
+                    std::vector<ClusterEdge> min_weight_from_cluster_edges = GraphUtil::get_min_weight_from_cluster_edges(cluster_edges, cluster_finder);
+
+                    std::sort(min_weight_from_cluster_edges.begin(), min_weight_from_cluster_edges.end(), [](ClusterEdge a, ClusterEdge b) {
                         return a.weight < b.weight;
                     });
 
-                    int mu = std::min(clusters_local[i].size(), cluster_edges.size());
+                    int mu = std::min(clusters_local[i].size(), min_weight_from_cluster_edges.size());
 
-                    std::vector<ClusterEdge> min_weight_cluster_edges(cluster_edges.begin(), cluster_edges.begin() + mu);
+                    std::vector<ClusterEdge> min_weight_cluster_edges(min_weight_from_cluster_edges.begin(), min_weight_from_cluster_edges.begin() + mu);
 
                     for (int j = 0; j < clusters_local[i].size(); ++j) {
                         if (j > mu - 1) {
@@ -111,7 +115,7 @@ namespace MSTSolver {
                         int cluster_vertex = clusters_local[i][j];
                         ClusterEdge edge = min_weight_cluster_edges[j];
 
-                        sendbuf_from_clusters[graph_local.get_vertex_machine(cluster_vertex + vertex_local_start)].push_back(edge);
+                        sendbuf_from_clusters[graph_local.get_vertex_machine(cluster_vertex)].push_back(edge);
                     }
                 }
 
@@ -137,7 +141,6 @@ namespace MSTSolver {
                 double t_end_comm3 = MPI_Wtime();
                 t_comm3 = t_end_comm3 - t_start_comm3;
             }
-
 
             // step 4
             if (rank == 0) {
@@ -177,7 +180,6 @@ namespace MSTSolver {
                     bool from_cluster_finished = cluster_finder.is_finished(from_cluster);
                     bool to_cluster_finished = cluster_finder.is_finished(to_cluster);
 
-
                     if (to_cluster_finished && from_cluster_finished) {
                         continue;
                     }
@@ -215,8 +217,11 @@ namespace MSTSolver {
             cluster_finder.set_id(cluster_finder_id);
             cluster_finder.reset_finished();
 
+            // std::vector<std::vector<int>> clusters_local(num_vertex_local);
 
-            std::vector<std::vector<int>> clusters_local(num_vertex);
+            for (int vertex_local = 0; vertex_local < num_vertex_local; ++vertex_local) {
+                clusters_local[vertex_local].clear();
+            }
 
             for (int vertex = 0; vertex < num_vertex; ++vertex) {
                 int cluster_leader = cluster_finder.get_cluster_leader(vertex);
@@ -244,9 +249,12 @@ namespace MSTSolver {
             if (k >= 10) {
                 throw std::runtime_error("k >= 10");
             }
-        }
 
-        delete[] cluster_finder_id;
+            if (num_cluster == 1) {
+                break;
+            }
+
+        }
 
         AlgoMPIResult result;
         result.logs = logs;

@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/appl/spack/v018/install-tree/gcc-11.3.0/boost-1.79.0-eipty5/include",
+                "/appl/spack/v018/install-tree/gcc-11.3.0/openmpi-4.1.4-w2aekq/include"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}

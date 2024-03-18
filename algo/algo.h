@@ -5,6 +5,8 @@
 #include <random>
 #include <boost/mpi.hpp>
 #include <boost/mpi/collectives.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/serialization.hpp>
 
 class GraphLocal {
 public:
@@ -55,6 +57,13 @@ struct ClusterEdge {
     int to_v;
     double weight;
     ClusterEdge(int from_v, int to_v, double weight) : from_v(from_v), to_v(to_v), weight(weight) {};
+    ClusterEdge() {};
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version) {
+        ar & from_v;
+        ar & to_v;
+        ar & weight;
+    }
 };
 
 struct LogDist {
@@ -84,7 +93,7 @@ public:
     void set_finished(int i);
     void reset_finished();
     int root(int i);
-    int flatten();
+    void flatten();
     bool is_finished(int i);
     bool safe_union(int p, int q);
 private:

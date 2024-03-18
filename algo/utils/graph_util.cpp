@@ -1,6 +1,7 @@
 #include <vector>
 #include "../algo.h"
 #include <map>
+#include <boost/serialization/vector.hpp>
 
 namespace GraphUtil {
     std::vector<std::vector<ClusterEdge>> get_min_weight_to_cluster_edges(GraphLocal& graph_local, QuickUnion& cluster_finder) {
@@ -41,7 +42,7 @@ namespace GraphUtil {
         for (int i = 0; i < min_cluster_edges.size(); ++i) {
             ClusterEdge edge = min_cluster_edges[i];
 
-            sendbuf[graph_local.get_vertex_machine(cluster_finder.get_cluster_leader(edge.from_v))].push_back(edge);
+            sendbuf[graph_local.get_vertex_machine(cluster_finder.get_cluster_leader(edge.to_v))].push_back(edge);
         }
 
         return sendbuf;

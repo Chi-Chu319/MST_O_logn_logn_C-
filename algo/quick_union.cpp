@@ -1,94 +1,82 @@
 #include <algorithm>
 #include <iostream>
+#include "algo/algo.h"
 
-class QuickUnion {
-private:
-    int* id;
-    int* sz;
-    bool* finished;
-    int n;
+QuickUnion::QuickUnion(int* id, int n) : id(id), n(n) {
+    sz = new int[n];
+    for (int i = 0; i < n; i++) {
+        sz[i] = 1;
+    }
+    finished = new bool[n];
+    for (int i = 0; i < n; i++) {
+        finished[i] = false;
+    }
+}
 
-public:
-    QuickUnion(int* id, int n) : id(id), n(n) {
-        sz = new int[n];
-        for (int i = 0; i < n; i++) {
-            sz[i] = 1;
-        }
-        finished = new bool[n];
-        for (int i = 0; i < n; i++) {
-            finished[i] = 1;
-        }
+QuickUnion::~QuickUnion() {
+    delete[] id;
+    delete[] sz;
+    delete[] finished;
+}
+
+int* QuickUnion::get_id() {
+    return id;
+}
+
+void QuickUnion::set_id(int* newId) {
+    id = newId;
+}
+
+int QuickUnion::get_cluster_leader(int i) {
+    return root(i);
+}
+
+void QuickUnion::set_finished(int i) {
+    finished[root(i)] = true;
+}
+
+void QuickUnion::reset_finished() {
+    for (int i = 0; i < n; i++) {
+        finished[i] = false;
+    }
+}
+
+int QuickUnion::root(int i) {
+    while (i != id[i]) {
+        i = id[i];
+    }
+    return i;
+}
+
+void QuickUnion::flatten() {
+    int* newId = new int[n];
+    for (int i = 0; i < n; i++) {
+        newId[i] = root(i);
     }
 
-    ~QuickUnion() {
-        delete[] id;
-        delete[] sz;
-        delete[] finished;
+    delete[] id;
+    id = newId;
+}
+
+bool QuickUnion::is_finished(int i) {
+    return finished[root(i)];
+}
+
+bool QuickUnion::safe_union(int p, int q) {
+    int i = root(p);
+    int j = root(q);
+
+    if (i == j) {
+        return false;
     }
 
-    int* get_id() {
-        return id;
+    if (sz[i] < sz[j]) {
+        id[i] = j;
+        sz[j] += sz[i];
+        return true;
+    } else {
+        id[j] = i;
+        sz[i] += sz[j];
+        return true;
     }
-
-    void set_id(int* newId) {
-        id = newId;
-    }
-
-    int get_cluster_leader(int i) {
-        return root(i);
-    }
-
-    void set_finished(int i) {
-        finished[root(i)] = true;
-    }
-
-    void reset_finished() {
-        for (int i = 0; i < n; i++) {
-            finished[i] = false;
-        }
-    }
-
-    int root(int i) {
-        while (i != id[i]) {
-            i = id[i];
-        }
-        return i;
-    }
-
-    int flatten() {
-        int* newId = new int[n];
-        for (int i = 0; i < n; i++) {
-            newId[i] = root(i);
-        }
-
-        delete[] id;
-        id = newId;
-    }
-
-    bool is_finished(int i) {
-        return finished[root(i)];
-    }
-
-    bool connected(int p, int q) {
-        return root(p) == root(q);
-    }
-
-    bool safe_union(int p, int q) {
-        int i = root(p);
-        int j = root(q);
-
-        if (i == j) {
-            return true;
-        }
-
-        if (sz[i] < sz[j]) {
-            id[i] = j;
-            sz[j] += sz[i];
-            return false;
-        } else {
-            id[j] = i;
-            sz[i] += sz[j];
-            return false;
-        }
-    }
-};
+}
