@@ -7,7 +7,7 @@
 #include <boost/mpi/collectives.hpp>
 #include "algo/algo.h"
 
-std::vector<int> MSTSolver::prim(GraphLocal graph_local, int rank, int size) {
+std::vector<int> MSTSolver::prim(GraphLocal graph_local) {
     std::vector<std::vector<double>> graph = graph_local.get_vertices();
     int n = graph.size();
     std::vector<int> parent(n, -1);

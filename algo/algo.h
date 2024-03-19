@@ -110,6 +110,8 @@ namespace GraphUtil {
 
 namespace MSTSolver {
     AlgoMPIResult algo_mpi(boost::mpi::communicator world, GraphLocal& graph_local, int rank, int size);
+    std::vector<int> prim(GraphLocal graph_local);
+    std::vector<ClusterEdge> kruskal(GraphLocal graph_local);
 }
 
 #endif // ALGO_H
