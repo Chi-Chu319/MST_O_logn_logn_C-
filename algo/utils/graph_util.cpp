@@ -4,6 +4,32 @@
 #include <boost/serialization/vector.hpp>
 
 namespace GraphUtil {
+    Graph generate_clique_graph(int size, int max_weight, int num_vertex_local) {
+        Graph graph = Graph(
+            size,
+            num_vertex_local,
+            -1,
+            max_weight,
+            true
+        );
+
+        graph.generate();
+
+        return graph;
+    }
+
+    GraphLocal generate_distributed_clique_graph(boost::mpi::communicator world, int rank, int size, int max_weight, int num_vertex_local) {
+        GraphLocal graph_local = GraphLocal(size, rank, num_vertex_local, max_weight);
+        std::vector<std::vector<double>> sendbuf = graph_local.generate();
+        std::vector<std::vector<double>> recvbuf;
+
+        boost::mpi::all_to_all<std::vector<double>>(world, sendbuf, recvbuf);
+
+        graph_local.fill(recvbuf);
+
+        return graph_local;
+    }
+
     std::vector<std::vector<ClusterEdge>> get_min_weight_to_cluster_edges(GraphLocal& graph_local, QuickUnion& cluster_finder) {
         int vertex_local_start = graph_local.get_vertex_local_start();
         int comm_size = graph_local.get_comm_size();
@@ -56,9 +82,9 @@ namespace GraphUtil {
             ClusterEdge edge = cluster_edges[i];
             int from_cluster = cluster_finder.get_cluster_leader(edge.from_v);
 
-            if (min_cluster_edges.find(from_cluster) == min_cluster_edges.end()) {
+            if (min_cluster_edges.count(from_cluster) == 0) {
                 min_cluster_edges[from_cluster] = edge;
-            } else if (edge.weight < cluster_edges[from_cluster].weight) {
+            } else if (edge.weight < min_cluster_edges[from_cluster].weight) {
                 min_cluster_edges[from_cluster] = edge;
             }
         }

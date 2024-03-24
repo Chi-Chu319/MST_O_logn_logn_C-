@@ -10,12 +10,27 @@ double Graph::random_weight() {
     return dist(rng);
 }
 
+Graph::Graph() {
+    num_vertices = 0;
+    comm_size = 0;
+    num_vertices_local = 0;
+    expected_degree = 0;
+    max_weight = 0;
+    is_clique = false;
+}
+
 Graph::Graph(int comm_size, int num_vertices_local, int expected_degree, int max_weight, bool is_clique)
 : comm_size(comm_size), num_vertices_local(num_vertices_local), expected_degree(expected_degree),
     max_weight(max_weight), is_clique(is_clique), dist(0.0, max_weight) {
     num_vertices = comm_size * num_vertices_local;
+    // print num_vertices
     vertices.resize(num_vertices, std::vector<double>(num_vertices, 0.0));
-    std::random_device rd;
+    std::random_device dev;
+    this->rng = std::mt19937(dev());
+}
+
+const std::vector<std::vector<double>>& Graph::get_vertices() const {
+    return vertices;
 }
 
 Graph Graph::generate() {

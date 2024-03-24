@@ -4,10 +4,14 @@
 #include <limits>
 #include <mpi.h>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/serialization.hpp>
 #include "algo/algo.h"
 
 double GraphLocal::random_weight() {
     return dist(rng);
+}
+
+GraphLocal::GraphLocal() {
 }
 
 GraphLocal::GraphLocal(int comm_size, int rank, int num_vertices_local, int max_weight)
@@ -79,3 +83,4 @@ int GraphLocal::get_comm_size() const {
 int GraphLocal::get_vertex_machine(int vertex) const {
     return vertex / num_vertices_local;
 }
+

@@ -24,6 +24,7 @@ int* QuickUnion::get_id() {
 }
 
 void QuickUnion::set_id(int* newId) {
+    // delete[] id;
     id = newId;
 }
 

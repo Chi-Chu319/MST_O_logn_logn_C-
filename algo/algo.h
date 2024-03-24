@@ -10,6 +10,7 @@
 
 class GraphLocal {
 public:
+    GraphLocal();
     GraphLocal(int comm_size, int rank, int num_vertices_local, int max_weight);
     void set_vertices(const std::vector<std::vector<double>>& vertices);
     std::vector<std::vector<double>> generate();
@@ -20,6 +21,17 @@ public:
     int get_comm_size() const;
     int get_num_vertices() const;
     int get_vertex_machine(int vertex) const;
+
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version) {
+        ar & rank;
+        ar & comm_size;
+        ar & num_vertices_local;
+        ar & max_weight;
+        ar & num_vertices;
+        ar & vertex_local_start;
+        ar & vertices;
+    }
 
 private:
     int rank;
@@ -36,9 +48,11 @@ private:
 
 class Graph {
 public:
+    Graph();
     Graph(int comm_size, int num_vertices_local, int expected_degree, int max_weight, bool is_clique);
     Graph generate();
     std::vector<GraphLocal> split();
+    const std::vector<std::vector<double>>& get_vertices() const;
 private:
     int comm_size;
     int num_vertices_local;
@@ -106,12 +120,18 @@ private:
 namespace GraphUtil {
     std::vector<std::vector<ClusterEdge>> get_min_weight_to_cluster_edges(GraphLocal& graph_local, QuickUnion& cluster_finder);
     std::vector<ClusterEdge> get_min_weight_from_cluster_edges(std::vector<ClusterEdge>& cluster_edges, QuickUnion& cluster_finder);
+    Graph generate_clique_graph(int size, int max_weight, int num_vertex_local);
+    GraphLocal generate_distributed_clique_graph(boost::mpi::communicator world, int rank, int size, int max_weight, int num_vertex_local);
+}
+
+namespace CsvUtil {
+    void save_csv(const std::string& filename, const std::vector<std::string> fields, const std::vector<std::vector<std::string>>& data);
 }
 
 namespace MSTSolver {
     AlgoMPIResult algo_mpi(boost::mpi::communicator world, GraphLocal& graph_local, int rank, int size);
-    std::vector<int> prim(GraphLocal graph_local);
-    std::vector<ClusterEdge> kruskal(GraphLocal graph_local);
+    double prim(Graph graph);
+    double kruskal(Graph graph);
 }
 
 #endif // ALGO_H

@@ -33,7 +33,7 @@ make
 
 After building the project, you can run it using the provided batch script. This script submits a job to an MPI environment. To submit the job, execute the following command:
 ```
-batch mst_job.sh
+sbatch mst_job.sh
 ```
 
 Ensure that `mst_job.sh` is properly configured for your computing environment and job scheduler (e.g., Slurm, PBS).

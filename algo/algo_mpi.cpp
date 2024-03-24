@@ -144,6 +144,7 @@ namespace MSTSolver {
 
             // step 4
             if (rank == 0) {
+                // print cluster_finder_id
                 std::vector<ClusterEdge> edges_to_add;
                 for (int i = 0; i < gathered_edges.size(); ++i) {
                     std::vector<ClusterEdge> edges = gathered_edges[i];
@@ -160,16 +161,15 @@ namespace MSTSolver {
 
                 std::vector<bool> heaviest_edges(edges_to_add.size());
                 std::fill(heaviest_edges.begin(), heaviest_edges.end(), false);
-                std::map<int, ClusterEdge> encountered_clusters;
+                std::map<int, bool> encountered_clusters;
 
                 for (int i = edges_to_add.size() - 1; i >= 0; --i) {
                     ClusterEdge edge = edges_to_add[i];
-                    int from_cluster = cluster_finder.get_cluster_leader(edge.from_v);
                     int to_cluster = cluster_finder.get_cluster_leader(edge.to_v);
 
                     if (encountered_clusters.find(to_cluster) == encountered_clusters.end()) {
-                        encountered_clusters[to_cluster] = edge;
-                        heaviest_edges[to_cluster] = true;
+                        encountered_clusters[to_cluster] = true;
+                        heaviest_edges[i] = true;
                     }
                 }
 
@@ -214,10 +214,10 @@ namespace MSTSolver {
             double t_end_comm4 = MPI_Wtime();
             t_comm4 = t_end_comm4 - t_start_comm4;
 
-            cluster_finder.set_id(cluster_finder_id);
+            if (rank != 0) {
+                cluster_finder.set_id(cluster_finder_id);
+            }
             cluster_finder.reset_finished();
-
-            // std::vector<std::vector<int>> clusters_local(num_vertex_local);
 
             for (int vertex_local = 0; vertex_local < num_vertex_local; ++vertex_local) {
                 clusters_local[vertex_local].clear();

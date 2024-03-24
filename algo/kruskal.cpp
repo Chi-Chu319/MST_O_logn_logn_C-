@@ -8,13 +8,13 @@
 #include <boost/mpi/collectives.hpp>
 #include "algo/algo.h"
 
-std::vector<ClusterEdge> MSTSolver::kruskal(GraphLocal graph_local) {
-    std::vector<std::vector<double>> graph = graph_local.get_vertices();
-    int n = graph.size();
+double MSTSolver::kruskal(Graph graph) {
+    std::vector<std::vector<double>> vertices = graph.get_vertices();
+    int n = vertices.size();
     std::vector<ClusterEdge> edges;
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
-            edges.push_back(ClusterEdge(i, j, graph[i][j]));
+            edges.push_back(ClusterEdge(i, j, vertices[i][j]));
         }
     }
     std::sort(edges.begin(), edges.end(), [](const ClusterEdge& a, const ClusterEdge& b) {
@@ -43,5 +43,10 @@ std::vector<ClusterEdge> MSTSolver::kruskal(GraphLocal graph_local) {
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> t_total = end - start;
 
-    return mst;
+    double sum_weight = 0;
+    for (auto edge : mst) {
+        sum_weight += edge.weight;
+    }
+
+    return sum_weight;
 }
