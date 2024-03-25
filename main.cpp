@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 
     // vector of vectors of size 2 (double)
     std::string csv_filename = "seq_vs_dist_n1_t8.csv";
-    std::vector<std::string> csv_fields {"num_vertex_local", "k", "t_mpi", "t_mpi_local", "t_mpi_mpi", "t_prim"};
+    std::vector<std::string> csv_fields {"num_vertex_local", "k", "t_mpi_local", "t_mpi_mpi", "t_mpi", "t_prim"};
     std::vector<std::vector<std::string>> csv_data(k_max + 1);
 
     while (k <= k_max) {
