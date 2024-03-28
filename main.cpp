@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     int num_vertex_local;
 
     // vector of vectors of size 2 (double)
-    std::string csv_filename = "dist_n1_t8.csv";
+    std::string csv_filename = "dist_n1_t4.csv";
     std::vector<std::string> csv_fields {"num_vertex_local", "k", "t_mpi_local", "t_mpi_mpi", "t_mpi"};
     std::vector<std::vector<std::string>> csv_data(k_max + 1);
 
@@ -28,22 +28,6 @@ int main(int argc, char *argv[]) {
 
         num_vertex_local = i;
         
-        double sum_weight_prim = 0;
-        std::chrono::duration<double> t_total_prim;
-        // if (rank == 0) {
-        //     Graph graph = GraphUtil::generate_clique_graph(size, 10, num_vertex_local);
-        //     auto start_prim = std::chrono::high_resolution_clock::now();
-        //     sum_weight_prim = MSTSolver::prim(graph);
-        //     auto end_prim = std::chrono::high_resolution_clock::now();
-        //     t_total_prim = end_prim - start_prim;
-
-        //     sendbuf = graph.split();
-        // }
-
-        // GraphLocal graph_local;
-
-        // boost::mpi::scatter<GraphLocal>(world, sendbuf, graph_local, 0);
-
         GraphLocal graph_local = GraphUtil::generate_distributed_clique_graph(world, rank, size, 10, num_vertex_local);
 
         // mpi wall time
@@ -51,18 +35,8 @@ int main(int argc, char *argv[]) {
         auto result = MSTSolver::algo_mpi(world, graph_local, rank, size);
         double mpi_end = MPI_Wtime();
 
-        // loop through result.mst_edges and sum weight
-        // double sum_weight_mpi = 0;
-        // for (auto edge : result.mst_edges) {
-        //     sum_weight_mpi += edge.weight;
-        // }
-
         if (rank == 0) {
             // time the algo
-            // std::cout << "Graph size: " << num_vertex_local * size << std::endl;
-            // std::cout << "K: " << result.k << std::endl;
-            // std::cout << "MPI Wall Time: " << mpi_end - mpi_start << std::endl;
-            // std::cout << "t_total_prim time: " << std::chrono::duration<double>(t_total_prim).count() << std::endl;
 
             double t_mpi_mpi = 0;
 
@@ -72,25 +46,7 @@ int main(int argc, char *argv[]) {
 
             double t_mpi_local = (mpi_end - mpi_start) - t_mpi_mpi;
 
-            // if (fabs(sum_weight_mpi - sum_weight_prim) < DBL_EPSILON) {
-            //     std::cout << "Error: sum_weight_mpi != sum_weight_prim" << std::endl;
-            //     std::cout << "sum_weight_mpi: " << sum_weight_mpi << std::endl;
-            //     std::cout << "sum_weight_prim: " << sum_weight_prim << std::endl;
-            // }
-            csv_data[k] = {std::to_string(num_vertex_local * size),  std::to_string(k), std::to_string(t_mpi_local), std::to_string(t_mpi_mpi), std::to_string(mpi_end - mpi_start)};
-        }
-
-        if (rank == 0) {
-            for (auto log : result.logs) {
-                std::cout << "k: " << log.k << std::endl;
-                std::cout << "t_total: " << log.t_total << std::endl;
-                std::cout << "t_mpi: " << log.t_mpi << std::endl;
-                std::cout << "t_comm0: " << log.t_comm0 << std::endl;
-                std::cout << "t_comm1: " << log.t_comm1 << std::endl;
-                std::cout << "t_comm2: " << log.t_comm2 << std::endl;
-                std::cout << "t_comm3: " << log.t_comm3 << std::endl;
-                std::cout << "t_comm4: " << log.t_comm4 << std::endl;
-            }
+            csv_data[k] = {std::to_string(num_vertex_local * size),  std::to_string(result.k), std::to_string(t_mpi_local), std::to_string(t_mpi_mpi), std::to_string(mpi_end - mpi_start)};
         }
 
 
