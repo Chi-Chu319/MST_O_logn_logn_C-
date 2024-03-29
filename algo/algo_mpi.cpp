@@ -9,6 +9,8 @@
 
 namespace MSTSolver {
     AlgoMPIResult algo_mpi(boost::mpi::communicator world, GraphLocal& graph_local, int rank, int size) {
+        double t_total_start = MPI_Wtime();
+        
         int num_vertex_local = graph_local.get_num_vertices_local();
 
         int vertex_local_start = rank * num_vertex_local;
@@ -28,6 +30,7 @@ namespace MSTSolver {
         std::vector<ClusterEdge> mst_edges = std::vector<ClusterEdge>();
         QuickUnion cluster_finder(cluster_finder_id, num_vertex);
         int num_cluster = num_vertex;
+
 
         while (true)
         {
@@ -253,13 +256,26 @@ namespace MSTSolver {
             if (num_cluster == 1) {
                 break;
             }
-
         }
+
+        double t_total_end = MPI_Wtime();
 
         AlgoMPIResult result;
         result.logs = logs;
         result.mst_edges = mst_edges;
         result.k = k;
+
+        double t_total = t_total_end - t_total_start;
+
+        double t_mpi_total = 0;
+
+        for (auto log : result.logs) {
+            t_mpi_total += log.t_mpi;
+        }
+
+        result.t_total = t_total;
+        result.t_mpi_total = t_mpi_total;
+        result.t_local_total = t_total - t_mpi_total;
 
         return result;
     }

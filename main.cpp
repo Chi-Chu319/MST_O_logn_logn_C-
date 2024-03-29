@@ -5,6 +5,8 @@
 #include <chrono>
 #include <float.h>
 #include <string>
+#include <iostream>
+#include <fstream>
 
 int main(int argc, char *argv[]) {
     boost::mpi::environment env;
@@ -13,49 +15,38 @@ int main(int argc, char *argv[]) {
     int rank = world.rank();
     int size = world.size();
 
-    int k = 0;
-    int i = 2;
-    int k_max = 11;
-    int num_vertex_local;
+    int num_proc = 32;
+    int num_vertex_local = 1024;
 
     // vector of vectors of size 2 (double)
-    std::string csv_filename = "dist_n1_t4.csv";
-    std::vector<std::string> csv_fields {"num_vertex_local", "k", "t_mpi_local", "t_mpi_mpi", "t_mpi"};
-    std::vector<std::vector<std::string>> csv_data(k_max + 1);
+    std::string csv_filename = "strong_scaling/strong_scale.csv";
+    // std::vector<std::string> csv_fields {"t_mpi", "t_mpi_mpi", "t_mpi_local", "num_proc", "num_vertex_per_proc"};
 
-    while (k <= k_max) {
-        std::vector<GraphLocal> sendbuf;
-
-        num_vertex_local = i;
-        
-        GraphLocal graph_local = GraphUtil::generate_distributed_clique_graph(world, rank, size, 10, num_vertex_local);
-
-        // mpi wall time
-        double mpi_start = MPI_Wtime();
-        auto result = MSTSolver::algo_mpi(world, graph_local, rank, size);
-        double mpi_end = MPI_Wtime();
-
-        if (rank == 0) {
-            // time the algo
-
-            double t_mpi_mpi = 0;
-
-            for (auto log : result.logs) {
-                t_mpi_mpi += log.t_mpi;
-            }
-
-            double t_mpi_local = (mpi_end - mpi_start) - t_mpi_mpi;
-
-            csv_data[k] = {std::to_string(num_vertex_local * size),  std::to_string(result.k), std::to_string(t_mpi_local), std::to_string(t_mpi_mpi), std::to_string(mpi_end - mpi_start)};
-        }
-
-
-        i *= 2;
-        k += 1;
-    }
+    AlgoMPIResult result = Tester::algo_mpi_test(world, rank, size, 10, num_vertex_local);
 
     if (rank == 0) {
-        CsvUtil::save_csv(csv_filename, csv_fields, csv_data);
+        // CsvUtil::add_csv_row(csv_filename, csv_fields);
+
+        std::vector<std::string> row {std::to_string(result.t_total), std::to_string(result.t_mpi_total), std::to_string(result.t_local_total), std::to_string(num_proc), std::to_string(num_vertex_local)};
+
+        CsvUtil::add_csv_row(csv_filename, row);
+
+        // open a file and print result.logs
+        std::ostringstream stringStream;
+        stringStream << "strong_scaling/strong_scale_t";
+        stringStream << std::to_string(num_proc);
+        stringStream << "_";
+        stringStream << std::to_string(num_vertex_local);
+        stringStream << "_logs.txt";
+        std::string scaling_detail_filename = stringStream.str();
+        
+        std::ofstream scaling_detail_file(scaling_detail_filename);
+
+        for (const LogDist& log : result.logs) {
+            scaling_detail_file << log.k << ", " << log.t_total << ", " << log.t_comm0 << ", " << log.t_comm1 << ", " << log.t_comm2 << ", " << log.t_comm3 << ", " << log.t_comm4 << std::endl;
+        }
+
+        scaling_detail_file.close();
     }
 
     return 0;

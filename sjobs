@@ -1,0 +1,4 @@
+21031557     large  mpiTest wutianxi PD       0:00     16 (Nodes required for job are DOWN, DRAINED or reserved for jobs in higher priority partitions)
+21031556     large  mpiTest wutianxi PD       0:00      8 (Priority)
+21031552     large  mpiTest wutianxi PD       0:00      4 (Priority)
+21031546     large  mpiTest wutianxi  R       3:29      1 r01c31

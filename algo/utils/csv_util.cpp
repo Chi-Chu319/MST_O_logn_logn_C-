@@ -20,4 +20,16 @@ namespace CsvUtil {
 
         file.close();
     }
+
+    void add_csv_row(std::string filename, std::vector<std::string> row) {
+        std::ofstream file(filename
+            , std::ios_base::app | std::ios_base::out);
+
+        for (const auto& cell : row) {
+            file << cell << ",";
+        }
+        file << std::endl;
+
+        file.close();
+    }        
 }

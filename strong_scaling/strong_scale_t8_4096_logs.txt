@@ -1,0 +1,19 @@
+0, 1.15906, 0.052962, 0, 0, 0, 0.000349268
+1, 304.244, 0, 101.596, 1.90094, 0.0336169, 0.0774052
+2, 81.9541, 0, 3.63933, 0.474983, 0.0306351, 0.000286438
+
+Job ID: 21031495
+Cluster: puhti
+User/Group: wutianxi/pepr_wutianxi
+State: COMPLETED (exit code 0)
+Nodes: 1
+Cores per node: 8
+CPU Utilized: 01:04:58
+CPU Efficiency: 98.04% of 01:06:16 core-walltime
+Job Wall-clock time: 00:08:17
+Memory Utilized: 24.57 GB (estimated maximum)
+Memory Efficiency: 19.20% of 128.00 GB (16.00 GB/core)
+Job consumed 2.87 CSC billing units based on following used resources
+Billed project: project_2009665
+CPU BU: 1.10
+Mem BU: 1.77

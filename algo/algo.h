@@ -95,6 +95,9 @@ struct AlgoMPIResult {
     std::vector<LogDist> logs;
     std::vector<ClusterEdge> mst_edges;
     int k;
+    double t_total;
+    double t_mpi_total;
+    double t_local_total;
 };
 
 class QuickUnion {
@@ -124,14 +127,23 @@ namespace GraphUtil {
     GraphLocal generate_distributed_clique_graph(boost::mpi::communicator world, int rank, int size, int max_weight, int num_vertex_local);
 }
 
-namespace CsvUtil {
-    void save_csv(const std::string& filename, const std::vector<std::string> fields, const std::vector<std::vector<std::string>>& data);
-}
-
 namespace MSTSolver {
     AlgoMPIResult algo_mpi(boost::mpi::communicator world, GraphLocal& graph_local, int rank, int size);
     double prim(Graph graph);
     double kruskal(Graph graph);
+}
+
+namespace CsvUtil {
+    void save_csv(const std::string& filename, const std::vector<std::string> fields, const std::vector<std::vector<std::string>>& data);
+}
+
+namespace CsvUtil {
+    void save_csv(const std::string& filename, const std::vector<std::string> fields, const std::vector<std::vector<std::string>>& data);
+    void add_csv_row(std::string filename, std::vector<std::string> row);
+}
+
+namespace Tester {
+    AlgoMPIResult algo_mpi_test(boost::mpi::communicator world, int rank, int size, int max_weight, int num_vertex_local);
 }
 
 #endif // ALGO_H
