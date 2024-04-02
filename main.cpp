@@ -15,8 +15,8 @@ int main(int argc, char *argv[]) {
     int rank = world.rank();
     int size = world.size();
 
-    int num_proc = 32;
-    int num_vertex_local = 1024;
+    int num_proc = 512;
+    int num_vertex_local = 64;
 
     // vector of vectors of size 2 (double)
     std::string csv_filename = "strong_scaling/strong_scale.csv";
