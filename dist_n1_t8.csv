@@ -1,4 +1,4 @@
-num_vertex_local,k,t_mpi_local,t_mpi_mpi,t_mpi,
+num_vertices,k,t_mpi_local,t_mpi_mpi,t_mpi,
 16,2,0.027046,0.000085,0.027131,
 32,2,0.000645,0.000163,0.000808,
 64,2,0.000779,0.000408,0.001186,
