@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     
     int k = 0;
     int i = 2;
-    int k_max = 9;
+    int k_max = 10;
 
     std::vector<std::string> csv_fields {"num_vertices", "k", "t_mpi_local", "t_mpi_mpi", "t_mpi"};
 
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     }
     
     if (rank == 0) {
-        std::string csv_filename = "dist_n4_t16.csv";
+        std::string csv_filename = "dist_n1_t8_original.csv";
         CsvUtil::save_csv(csv_filename, csv_fields, csv_data);
     }
 
