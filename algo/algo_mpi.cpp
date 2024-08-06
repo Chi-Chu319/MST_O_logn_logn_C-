@@ -162,7 +162,6 @@ namespace MSTSolver {
                         edges_to_add.push_back(edge);
                     }
                 }
-                printf("edges_to_add.size(): %d \n", edges_to_add.size());
 
                 std::sort(edges_to_add.begin(), edges_to_add.end(), [](ClusterEdge a, ClusterEdge b) {
                     return a.weight < b.weight;
