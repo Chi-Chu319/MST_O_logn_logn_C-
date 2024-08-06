@@ -21,6 +21,7 @@ namespace MSTSolver {
         std::vector<LogDist> logs;
 
         std::vector<std::vector<int>> clusters_local(num_vertex_local);
+
         int* cluster_finder_id = new int[num_vertex];
 
         for (int i = 0; i < num_vertex; ++i) {
@@ -34,6 +35,7 @@ namespace MSTSolver {
 
         while (true)
         {
+            double t_rank0 = 0;
             double t_comm0 = 0;
             double t_comm1 = 0;
             double t_comm2 = 0;
@@ -42,38 +44,42 @@ namespace MSTSolver {
             // mpi get time
             double t_start_all = MPI_Wtime();
 
-            // if (k == 0) {
-            //     for (int vertex_local = 0; vertex_local < num_vertex_local; ++vertex_local) {
-            //         int vertex_to = vertex_local + vertex_local_start;
-            //         int vertex_from = 0;
-            //         double weight = graph_local.get_vertices()[vertex_local][vertex_from];
-            //         for (int i = 0; i < num_vertex; ++i) {
-            //             if (graph_local.get_vertices()[vertex_local][i] < weight) {
-            //                 vertex_from = i;
-            //                 weight = graph_local.get_vertices()[vertex_local][i];
-            //             }
-            //         }
-            //         guardian_cluster_edges.push_back(ClusterEdge(vertex_from, vertex_to, weight));
-            //     }
+            std::vector<ClusterEdge> guardian_cluster_edges;
+            std::vector<std::vector<ClusterEdge>> gathered_edges(size);
 
-            //     // comm0
-            //     double t_start_comm0 = MPI_Wtime();
-            //     boost::mpi::gather(world, guardian_cluster_edges, gathered_edges, 0);
-            //     double t_end_comm0 = MPI_Wtime();
+            if (k == 0) {
+                for (int vertex_local = 0; vertex_local < num_vertex_local; ++vertex_local) {
+                    int vertex_to = vertex_local + vertex_local_start;
+                    int vertex_from = 0;
+                    double weight = graph_local.get_vertices()[vertex_local][vertex_from];
+                    for (int i = 0; i < num_vertex; ++i) {
+                        if (graph_local.get_vertices()[vertex_local][i] < weight) {
+                            vertex_from = i;
+                            weight = graph_local.get_vertices()[vertex_local][i];
+                        }
+                    }
+                    guardian_cluster_edges.push_back(ClusterEdge(vertex_from, vertex_to, weight));
+                }
 
-            //     t_comm0 = t_end_comm0 - t_start_comm0;
-            // }
-            // else {
+                // comm0
+                double t_start_comm0 = MPI_Wtime();
+                boost::mpi::gather(world, guardian_cluster_edges, gathered_edges, 0);
+                double t_end_comm0 = MPI_Wtime();
+
+                t_comm0 = t_end_comm0 - t_start_comm0;
+            }
+            // When k = 0 the cluster local is not populated and the following will throw an error
+            else {
                 // step 1
                 std::vector<std::vector<ClusterEdge>> sendbuf_to_clusters = GraphUtil::get_min_weight_to_cluster_edges(graph_local, cluster_finder);
 
-                std::vector<std::vector<ClusterEdge>> recvbuf_to_clusters = sendbuf_to_clusters;
+                std::vector<std::vector<ClusterEdge>> recvbuf_to_clusters(size);
 
                 // comm1
-                // double t_start_comm1 = MPI_Wtime();
-                // boost::mpi::all_to_all<std::vector<ClusterEdge>>(world, sendbuf_to_clusters, recvbuf_to_clusters);
-                // double t_end_comm1 = MPI_Wtime();
-                // t_comm1 = t_end_comm1 - t_start_comm1;
+                double t_start_comm1 = MPI_Wtime();
+                boost::mpi::all_to_all<std::vector<ClusterEdge>>(world, sendbuf_to_clusters, recvbuf_to_clusters);
+                double t_end_comm1 = MPI_Wtime();
+                t_comm1 = t_end_comm1 - t_start_comm1;
 
                 // step 2
                 std::vector<std::vector<ClusterEdge>> clusters_edges(num_vertex_local);
@@ -89,6 +95,7 @@ namespace MSTSolver {
                 }
 
                 std::vector<std::vector<ClusterEdge>> sendbuf_from_clusters(size);
+                std::vector<std::vector<ClusterEdge>> recvbuf_from_clusters(size);
 
                 for (int i = 0; i < clusters_edges.size(); ++i) {
                     std::vector<ClusterEdge> cluster_edges = clusters_edges[i];
@@ -98,6 +105,7 @@ namespace MSTSolver {
                     }
 
                     std::vector<ClusterEdge> min_weight_from_cluster_edges = GraphUtil::get_min_weight_from_cluster_edges(cluster_edges, cluster_finder);
+                    
 
                     std::sort(min_weight_from_cluster_edges.begin(), min_weight_from_cluster_edges.end(), [](ClusterEdge a, ClusterEdge b) {
                         return a.weight < b.weight;
@@ -105,30 +113,24 @@ namespace MSTSolver {
 
                     int mu = std::min(clusters_local[i].size(), min_weight_from_cluster_edges.size());
 
-                    std::vector<ClusterEdge> min_weight_cluster_edges(min_weight_from_cluster_edges.begin(), min_weight_from_cluster_edges.begin() + mu);
+                    min_weight_from_cluster_edges.resize(mu);
 
-                    for (int j = 0; j < clusters_local[i].size(); ++j) {
-                        if (j > mu - 1) {
-                            break;
-                        }
+                    for (int j = 0; j < mu; ++j) {
+
                         int cluster_vertex = clusters_local[i][j];
-                        ClusterEdge edge = min_weight_cluster_edges[j];
+                        ClusterEdge edge = min_weight_from_cluster_edges[j];
 
                         sendbuf_from_clusters[graph_local.get_vertex_machine(cluster_vertex)].push_back(edge);
                     }
                 }
 
-                std::vector<std::vector<ClusterEdge>> recvbuf_from_clusters = sendbuf_from_clusters;
-
-
                 // comm2
-                // double t_start_comm2 = MPI_Wtime();
-                // boost::mpi::all_to_all<std::vector<ClusterEdge>>(world, sendbuf_from_clusters, recvbuf_from_clusters);
-                // double t_end_comm2 = MPI_Wtime();
-                // t_comm2 = t_end_comm2 - t_start_comm2;
+                double t_start_comm2 = MPI_Wtime();
+                boost::mpi::all_to_all<std::vector<ClusterEdge>>(world, sendbuf_from_clusters, recvbuf_from_clusters);
+                double t_end_comm2 = MPI_Wtime();
+                t_comm2 = t_end_comm2 - t_start_comm2;
 
                 std::vector<ClusterEdge> guardian_cluster_edges;
-                // std::vector<std::vector<ClusterEdge>> gathered_edges(size);
 
                 // step 3
                 for (int i = 0; i < recvbuf_from_clusters.size(); ++i) {
@@ -141,26 +143,26 @@ namespace MSTSolver {
                 }
 
                 // // comm3
-                // double t_start_comm3 = MPI_Wtime();
-                // boost::mpi::gather(world, guardian_cluster_edges, gathered_edges, 0);
-                // double t_end_comm3 = MPI_Wtime();
-                // t_comm3 = t_end_comm3 - t_start_comm3;
-            // }
+                double t_start_comm3 = MPI_Wtime();
+                boost::mpi::gather(world, guardian_cluster_edges, gathered_edges, 0);
+                double t_end_comm3 = MPI_Wtime();
+                t_comm3 = t_end_comm3 - t_start_comm3;
+            }
 
-            // print the size of guardian_cluster_edges
-
+            double t_start_rank0 = MPI_Wtime();
             // step 4
             if (rank == 0) {
                 // print cluster_finder_id
                 std::vector<ClusterEdge> edges_to_add = guardian_cluster_edges;
-                // for (int i = 0; i < gathered_edges.size(); ++i) {
-                //     std::vector<ClusterEdge> edges = gathered_edges[i];
+                for (int i = 0; i < gathered_edges.size(); ++i) {
+                    std::vector<ClusterEdge> edges = gathered_edges[i];
 
-                //     for (int j = 0; j < edges.size(); ++j) {
-                //         ClusterEdge edge = edges[j];
-                //         edges_to_add.push_back(edge);
-                //     }
-                // }
+                    for (int j = 0; j < edges.size(); ++j) {
+                        ClusterEdge edge = edges[j];
+                        edges_to_add.push_back(edge);
+                    }
+                }
+                printf("edges_to_add.size(): %d \n", edges_to_add.size());
 
                 std::sort(edges_to_add.begin(), edges_to_add.end(), [](ClusterEdge a, ClusterEdge b) {
                     return a.weight < b.weight;
@@ -207,6 +209,9 @@ namespace MSTSolver {
 
                 cluster_finder.flatten();
             }
+            double t_end_rank0 = MPI_Wtime();
+            t_rank0 = t_end_rank0 - t_start_rank0;
+
 
             cluster_finder_id = cluster_finder.get_id();
             // get num_cluster which is the number of unique elements in cluster_finder_id
@@ -248,15 +253,11 @@ namespace MSTSolver {
             log.t_comm2 = t_comm2;
             log.t_comm3 = t_comm3;
             log.t_comm4 = t_comm4;
+            log.t_rank0 = t_rank0;
 
             logs.push_back(log);
 
             k++;
-
-            // print num_cluster
-            // if (rank == 0) {
-            //     std::cout << "num_cluster: " << num_cluster << std::endl;
-            // }
 
             if (k >= 10) {
                 throw std::runtime_error("k >= 10");
@@ -276,15 +277,17 @@ namespace MSTSolver {
 
         double t_total = t_total_end - t_total_start;
 
-        double t_mpi_total = 0;
+        double t_mpi = 0;
+        double t_rank0 = 0;
 
         for (auto log : result.logs) {
-            t_mpi_total += log.t_mpi;
+            t_mpi += log.t_mpi;
+            t_rank0 += log.t_rank0;
         }
 
         result.t_total = t_total;
-        result.t_mpi_total = t_mpi_total;
-        result.t_local_total = t_total - t_mpi_total;
+        result.t_mpi = t_mpi;
+        result.t_rank0 = t_rank0;
 
         return result;
     }

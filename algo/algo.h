@@ -89,6 +89,7 @@ struct LogDist {
     double t_comm2;
     double t_comm3;
     double t_comm4;
+    double t_rank0;
 };
 
 struct AlgoMPIResult {
@@ -96,8 +97,8 @@ struct AlgoMPIResult {
     std::vector<ClusterEdge> mst_edges;
     int k;
     double t_total;
-    double t_mpi_total;
-    double t_local_total;
+    double t_mpi;
+    double t_rank0;
 };
 
 class QuickUnion {
