@@ -15,13 +15,13 @@ int main(int argc, char *argv[]) {
     int rank = world.rank();
     int size = world.size();
 
-    int num_vertices = 8192;
+    int num_vertices = 16384;
     int num_proc = size;
     int num_vertex_local = num_vertices / num_proc;
     
     AlgoMPIResult result = Tester::algo_mpi_test(world, rank, size, 10, num_vertex_local);
 
-    std::string csv_filename = "csvs/strong_scale_8192.csv";
+    std::string csv_filename = "csvs/strong_scale_16384.csv";
     std::vector<std::string> row {std::to_string(result.t_total), std::to_string(result.t_mpi), std::to_string(result.t_rank0), std::to_string(num_proc), std::to_string(num_vertex_local)  };
 
     if (rank == 0) {
