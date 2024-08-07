@@ -1,4 +1,4 @@
-t_total,t_mpi,num_proc,num_vertex_local,
+t_total,t_mpi,num_threads,num_vertex_local,
 387.372266,279.551202,8,4096,
 165.871245,114.245915,16,2048,
 107.535156,74.660469,32,1024,

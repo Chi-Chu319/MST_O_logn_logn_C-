@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
     int rank = world.rank();
     int size = world.size();
 
-    int initial_num_vertices_local = 4096;
+    int initial_num_vertices_local = 1024;
     int initial_num_threads = 2;
 
     int num_threads = size;
@@ -24,8 +24,8 @@ int main(int argc, char *argv[]) {
 
     AlgoMPIResult result = Tester::algo_mpi_test(world, rank, size, 10, num_vertices_local);
 
-    std::string csv_filename = "csvs/weak_scale_4096.csv";
-    std::vector<std::string> row {std::to_string(result.t_total), std::to_string(result.t_mpi), std::to_string(result.t_rank0), std::to_string(num_threads), std::to_string(num_vertices_local)  };
+    std::string csv_filename = "csvs/weak_scale_1024.csv";
+    std::vector<std::string> row {std::to_string(result.t_total), std::to_string(result.t_mpi), std::to_string(result.t_rank0), std::to_string(num_threads), std::to_string(num_vertex_local)  };
 
     if (rank == 0) {
         CsvUtil::add_csv_row(csv_filename, row);
