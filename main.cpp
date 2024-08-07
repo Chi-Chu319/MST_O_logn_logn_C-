@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     
     AlgoMPIResult result = Tester::algo_mpi_test(world, rank, size, 10, num_vertex_local);
 
-    std::string csv_filename = "csvs/strong_scale_16384.csv";
+    std::string csv_filename = "csvs/weak_scale_16384.csv";
     std::vector<std::string> row {std::to_string(result.t_total), std::to_string(result.t_mpi), std::to_string(result.t_rank0), std::to_string(num_proc), std::to_string(num_vertex_local)  };
 
     if (rank == 0) {
