@@ -84,12 +84,12 @@ struct LogDist {
     int k;
     double t_total;
     double t_mpi;
+    double t_rank0;
     double t_comm0;
     double t_comm1;
     double t_comm2;
     double t_comm3;
     double t_comm4;
-    double t_rank0;
 };
 
 struct AlgoMPIResult {
