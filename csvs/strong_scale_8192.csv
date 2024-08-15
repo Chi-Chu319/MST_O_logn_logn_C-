@@ -1,4 +1,4 @@
-t_total,t_mpi,t_rank0,num_threads,num_vertex_local,
+t_total,t_mpi,t_rank0,num_threads,num_vertices_local,
 17.762924,6.430971,0.022475,8,1024,
 9.867197,3.775626,0.024357,16,512,
 5.865602,2.428623,0.027298,32,256,

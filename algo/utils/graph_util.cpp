@@ -4,10 +4,10 @@
 #include <boost/serialization/vector.hpp>
 
 namespace GraphUtil {
-    Graph generate_clique_graph(int size, int max_weight, int num_vertex_local) {
+    Graph generate_clique_graph(int size, int max_weight, int num_vertices_local) {
         Graph graph = Graph(
             size,
-            num_vertex_local,
+            num_vertices_local,
             -1,
             max_weight,
             true
@@ -18,8 +18,8 @@ namespace GraphUtil {
         return graph;
     }
 
-    GraphLocal generate_distributed_clique_graph(boost::mpi::communicator world, int rank, int size, int max_weight, int num_vertex_local) {
-        GraphLocal graph_local = GraphLocal(size, rank, num_vertex_local, max_weight);
+    GraphLocal generate_distributed_clique_graph(boost::mpi::communicator world, int rank, int size, int max_weight, int num_vertices_local) {
+        GraphLocal graph_local = GraphLocal(size, rank, num_vertices_local, max_weight);
         std::vector<std::vector<double>> sendbuf = graph_local.generate();
         std::vector<std::vector<double>> recvbuf;
 

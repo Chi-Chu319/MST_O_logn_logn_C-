@@ -11,26 +11,26 @@ namespace MSTSolver {
     AlgoMPIResult algo_mpi(boost::mpi::communicator world, GraphLocal& graph_local, int rank, int size) {
         double t_total_start = MPI_Wtime();
         
-        int num_vertex_local = graph_local.get_num_vertices_local();
+        int num_vertices_local = graph_local.get_num_vertices_local();
 
-        int vertex_local_start = rank * num_vertex_local;
-        int num_vertex = num_vertex_local * size;
+        int vertex_local_start = rank * num_vertices_local;
+        int num_vertices = num_vertices_local * size;
 
         // phase
         int k = 0;
         std::vector<LogDist> logs;
 
-        std::vector<std::vector<int>> clusters_local(num_vertex_local);
+        std::vector<std::vector<int>> clusters_local(num_vertices_local);
 
-        int* cluster_finder_id = new int[num_vertex];
+        int* cluster_finder_id = new int[num_vertices];
 
-        for (int i = 0; i < num_vertex; ++i) {
+        for (int i = 0; i < num_vertices; ++i) {
             cluster_finder_id[i] = i;
         }
 
         std::vector<ClusterEdge> mst_edges = std::vector<ClusterEdge>();
-        QuickUnion cluster_finder(cluster_finder_id, num_vertex);
-        int num_cluster = num_vertex;
+        QuickUnion cluster_finder(cluster_finder_id, num_vertices);
+        int num_cluster = num_vertices;
 
 
         while (true)
@@ -48,11 +48,11 @@ namespace MSTSolver {
             std::vector<std::vector<ClusterEdge>> gathered_edges(size);
 
             if (k == 0) {
-                for (int vertex_local = 0; vertex_local < num_vertex_local; ++vertex_local) {
+                for (int vertex_local = 0; vertex_local < num_vertices_local; ++vertex_local) {
                     int vertex_to = vertex_local + vertex_local_start;
                     int vertex_from = 0;
                     double weight = graph_local.get_vertices()[vertex_local][vertex_from];
-                    for (int i = 0; i < num_vertex; ++i) {
+                    for (int i = 0; i < num_vertices; ++i) {
                         if (graph_local.get_vertices()[vertex_local][i] < weight) {
                             vertex_from = i;
                             weight = graph_local.get_vertices()[vertex_local][i];
@@ -82,7 +82,7 @@ namespace MSTSolver {
                 t_comm1 = t_end_comm1 - t_start_comm1;
 
                 // step 2
-                std::vector<std::vector<ClusterEdge>> clusters_edges(num_vertex_local);
+                std::vector<std::vector<ClusterEdge>> clusters_edges(num_vertices_local);
 
                 for (int i = 0; i < recvbuf_to_clusters.size(); ++i) {
                     std::vector<ClusterEdge> edges = recvbuf_to_clusters[i];
@@ -214,14 +214,14 @@ namespace MSTSolver {
 
             cluster_finder_id = cluster_finder.get_id();
             // get num_cluster which is the number of unique elements in cluster_finder_id
-            std::set<int> unique_cluster_finder_id(cluster_finder_id, cluster_finder_id + num_vertex);
+            std::set<int> unique_cluster_finder_id(cluster_finder_id, cluster_finder_id + num_vertices);
             num_cluster = unique_cluster_finder_id.size();
 
             // broad cast num_cluster and cluster_finder_id to all processes
             // comm4
             double t_start_comm4 = MPI_Wtime();
             boost::mpi::broadcast(world, num_cluster, 0);
-            boost::mpi::broadcast(world, cluster_finder_id, num_vertex, 0);
+            boost::mpi::broadcast(world, cluster_finder_id, num_vertices, 0);
             double t_end_comm4 = MPI_Wtime();
             t_comm4 = t_end_comm4 - t_start_comm4;
 
@@ -230,11 +230,11 @@ namespace MSTSolver {
             }
             cluster_finder.reset_finished();
 
-            for (int vertex_local = 0; vertex_local < num_vertex_local; ++vertex_local) {
+            for (int vertex_local = 0; vertex_local < num_vertices_local; ++vertex_local) {
                 clusters_local[vertex_local].clear();
             }
 
-            for (int vertex = 0; vertex < num_vertex; ++vertex) {
+            for (int vertex = 0; vertex < num_vertices; ++vertex) {
                 int cluster_leader = cluster_finder.get_cluster_leader(vertex);
                 if (graph_local.get_vertex_machine(cluster_leader) == rank) {
                     clusters_local[cluster_leader - vertex_local_start].push_back(vertex);
