@@ -253,8 +253,15 @@ namespace MSTSolver {
             log.t_comm3 = t_comm3;
             log.t_comm4 = t_comm4;
             log.t_rank0 = t_rank0;
+            // print t_rank0
+    
+            if (rank == 0) {
+                printf("rank %d, k %d, t_rank0 %f\n", rank, k, t_rank0);
+            }
 
-            logs.push_back(log);
+            if (rank == 0) {
+                logs.push_back(log);
+            }
 
             k++;
 
