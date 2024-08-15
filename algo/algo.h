@@ -124,8 +124,8 @@ private:
 namespace GraphUtil {
     std::vector<std::vector<ClusterEdge>> get_min_weight_to_cluster_edges(GraphLocal& graph_local, QuickUnion& cluster_finder);
     std::vector<ClusterEdge> get_min_weight_from_cluster_edges(std::vector<ClusterEdge>& cluster_edges, QuickUnion& cluster_finder);
-    Graph generate_clique_graph(int size, int max_weight, int num_vertex_local);
-    GraphLocal generate_distributed_clique_graph(boost::mpi::communicator world, int rank, int size, int max_weight, int num_vertex_local);
+    Graph generate_clique_graph(int size, int max_weight, int num_vertices_local);
+    GraphLocal generate_distributed_clique_graph(boost::mpi::communicator world, int rank, int size, int max_weight, int num_vertices_local);
 }
 
 namespace MSTSolver {
@@ -144,7 +144,7 @@ namespace CsvUtil {
 }
 
 namespace Tester {
-    AlgoMPIResult algo_mpi_test(boost::mpi::communicator world, int rank, int size, int max_weight, int num_vertex_local);
+    AlgoMPIResult algo_mpi_test(boost::mpi::communicator world, int rank, int size, int max_weight, int num_vertices_local);
 }
 
 #endif // ALGO_H
