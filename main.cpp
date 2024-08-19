@@ -16,27 +16,20 @@ int main(int argc, char *argv[]) {
     int rank = world.rank();
     int size = world.size();
 
-    std::string csv_filename = "csvs/n1_t16_composition.csv";
+    std::string csv_filename = "csvs/n1_t8_16384_details_original.csv";
 
-    int k = 0;
-    int i = 2;
-    int k_max = 14;
+    AlgoMPIResult result = Tester::algo_mpi_test(world, rank, size, 10, 2048);
 
-    std::vector<std::string> csv_fields {"num_vertices", "t_rank0", "t_mpi", "t_total"};
     if (rank == 0) {
+        std::vector<std::string> csv_fields {"round", "t_total", "t_mpi", "t_rank0", "comm0", "comm1", "comm2", "comm3", "comm4"};
         CsvUtil::add_csv_row(csv_filename, csv_fields);
-    }
 
-    while (k <= k_max) {
-        AlgoMPIResult result = Tester::algo_mpi_test(world, rank, size, 10, i);
-        
-        if (rank == 0) {
-            std::vector<std::string> row {std::to_string(i * size), std::to_string(result.t_rank0), std::to_string(result.t_mpi), std::to_string(result.t_total) };
-            CsvUtil::add_csv_row(csv_filename, row);
-        }
-        
-        k += 1;
-        i *= 2;
+        for (int i = 0; i < result.logs.size(); i++) {
+            LogDist log = result.logs[i];
+            std::vector<std::string> csv_row {std::to_string(log.k), std::to_string(log.t_total), std::to_string(log.t_mpi), std::to_string(log.t_rank0), std::to_string(log.t_comm0), std::to_string(log.t_comm1), std::to_string(log.t_comm2), std::to_string(log.t_comm3), std::to_string(log.t_comm4)};
+
+            CsvUtil::add_csv_row(csv_filename, csv_row);
+        }    
     }
 
     return 0;
