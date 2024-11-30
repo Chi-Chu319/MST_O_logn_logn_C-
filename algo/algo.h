@@ -33,6 +33,9 @@ public:
         ar & vertices;
     }
 
+    // Expose a function to clear the data
+    void clear();
+
 private:
     int rank;
     int comm_size;

@@ -84,3 +84,7 @@ int GraphLocal::get_vertex_machine(int vertex) const {
     return vertex / num_vertices_local;
 }
 
+// clear
+void GraphLocal::clear() {
+    vertices.clear();
+}

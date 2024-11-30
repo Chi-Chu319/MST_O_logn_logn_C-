@@ -7,6 +7,9 @@ namespace Tester {
         // mpi wall time
         auto result = MSTSolver::algo_mpi(world, graph_local, rank, size);
 
+        // delete graph_local
+        graph_local.clear()
+
         return result;
     }
 }
